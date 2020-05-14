@@ -78,6 +78,20 @@ do
         echo "publishing metric for heap utilization (value=$METRIC_VALUE)"
 
         aws cloudwatch put-metric-data --metric-name $METRIC_NAME --namespace JVM --value $METRIC_VALUE --region eu-central-1 --dimensions "InstanceId=${INSTANCE_ID}" --unit $METRIC_UNIT --timestamp `date --utc +%FT%TZ`
+    elif [ $stat = "survivorUtil" ]
+    then
+        # S0U+S1U+EU+OU
+        METRIC_NAME="JVMSurvivorSpaceUtilization"
+        METRIC_UNIT="Kilobytes"
+
+        S0U_VALUE=`get_stat_value "s0u"`
+        S1U_VALUE=`get_stat_value "s1u"`
+
+        METRIC_VALUE=$(awk '{printf "%.0f", $1+$2}' <<<"$S0U_VALUE $S1U_VALUE")
+
+        echo "publishing metric for survivor space utilization (value=$METRIC_VALUE)"
+
+        aws cloudwatch put-metric-data --metric-name $METRIC_NAME --namespace JVM --value $METRIC_VALUE --region eu-central-1 --dimensions "InstanceId=${INSTANCE_ID}" --unit $METRIC_UNIT --timestamp `date --utc +%FT%TZ`
     elif [ $stat = "capacity" ]
     then
         # S0C+S1C+EC+OC
